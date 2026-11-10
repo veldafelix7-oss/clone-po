@@ -24,15 +24,23 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Build APK
+      - name: Find and Build APK
+        shell: bash
         run: |
-          cd podium-music-player-0.1.5.1
-          chmod +x gradlew
+          GRADLEW=$(find . -type f -name gradlew -print -quit)
+          if [ -z "$GRADLEW" ]; then
+            echo "gradlew not found"
+            find . -maxdepth 4 -type f | head -100
+            exit 1
+          fi
+          chmod +x "$GRADLEW"
+          cd "$(dirname "$GRADLEW")"
           ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Podium-APK
-          path: 'podium-music-player-0.1.5.1/**/build/outputs/apk/**/*.apk'
+          path: '**/build/outputs/apk/**/*.apk'
+          if-no-files-found: error
           
